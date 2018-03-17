@@ -1,0 +1,33 @@
+<h1 class="page-header">Dashboard</h1>
+
+{{#each userInfo}}
+	{{!-- <p>Id: {{_id}}<p> --}}
+	<h2>Welcome {{name}}!</h2>
+	{{!-- <p>email: {{email}}<p> --}}
+	<h3>Your Favorites:</h3>
+	{{#if favorites}}
+		<ul id="allFavorites">
+			{{#each favorites}}
+				<li class="sortThis" dataindex="{{@index}}" datatitle="{{title}}">
+					<a href="{{url}}" target="_blank"><p>{{title}}</p></a>
+						{{#if comments}}
+							<p>Comments:</p>
+							{{#each comments}}
+								<p>{{comment}}</p>
+							{{/each}}
+						{{/if}}
+				</li>
+			{{/each}}
+		</ul>
+	{{else}}
+		<p>No favorites</p>
+	{{/if}}
+	<p>Following Subreddits:</p>
+	{{#if subreddits}}
+		{{#each subreddits}}
+			<p>{{this}}</p>
+		{{/each}}
+	{{else}}
+		<p>No subreddits</p>
+	{{/if}}
+{{/each}}

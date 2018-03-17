@@ -1,0 +1,224 @@
+<h2 class="page-header">Scraper</h2>
+
+{{#each userInfo}}
+{{!-- 	<p>Id: {{_id}}<p>
+	<p>Name: {{name}}<p>
+	<p>email: {{email}}<p>
+	<p>username: {{username}}<p>
+	<p>password: {{password}}</p>
+	<p>Favorites:</p>
+	{{#if favorites}}
+		{{#each favorites}}
+			<a href="{{url}}" target="_blank"><p>{{url}}</p></a>
+			{{#if comments}}
+				{{#each comments}}
+					<p>{{this}}</p>
+				{{/each}}
+			{{/if}}
+		{{/each}}
+	{{else}}
+		<p>No favorites</p>
+	{{/if}}
+	<p>Following Subreddits:</p> --}}
+	{{#if subreddits}}
+		<p>Scrape the following subreddit(s) by clicking on one</p>
+		{{#each subreddits}}
+			<button class="btn fetchSubreddits scrapeSubreddit" dataSubreddit="{{this}}">{{this}}</button>
+		{{/each}}
+	{{else}}
+		<p>No subreddits</p>
+		<p class="fetchSubreddits" dataSubreddit="/">Scraping reddit homepage.</p>
+	{{/if}}
+{{/each}}
+
+<div class="modal fade" id="commentModal" tabindex="-1" role="dialog" aria-labelledby="commentModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="commentModalTitle">Comment Manager</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body" id="commentModalContent">
+				<div class="loader"></div>
+				<input class="aComment" type="" name="" value="Poop">
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary">Save changes</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<h1>Scrape Results</h1>
+<div id="scrapeResultsAppend">
+	{{!-- <div class="loader" id="scrapeLoader"></div> --}}
+</div>
+
+<script type="text/javascript">
+	$(document).ready(function(){
+		var subreddits = [];
+		console.log('poop');
+		$('.fetchSubreddits').each(function(){
+			var data = {
+				subreddit:$(this).attr("dataSubreddit")
+			}
+			console.log(data);
+			// subreddits.push(subreddit);
+			// console.log(subreddits);
+			// scrapeSubreddit(data);
+		})
+	})
+
+// var tempIcon = '<i class="fa fa-heart-o favoriteRequest" style="font-size:24px;" dataurl="'+thisUrl+'" datatitle="'+title+'"></i>'
+	$(document).on("click",".scrapeSubreddit",function(){
+		var data = {
+			subreddit:$(this).attr("datasubreddit")
+		}
+		scrapeSubreddit(data);
+	})
+
+	function scrapeSubreddit(data){
+		$("#scrapeResultsAppend").empty();
+		$('#scrapeResultsAppend').append('<div class="loader"></div>');
+		$.ajax({
+			url:"/api/scrape",
+			data:data,
+			type:"POST"
+		}).done((results)=>{
+			$("#scrapeResultsAppend").empty();
+			// $('#scrapeLoader').remove();
+			console.log(results);
+			var subredditHtml = '<h2>'+results.subreddit+'</h2>'
+			$('#scrapeResultsAppend').append(subredditHtml);
+			var potentialFavorites = {info:[]};
+			results.urls.forEach((data)=>{
+				var url = data.url;
+				var title = data.title;
+				potentialFavorites.info.push({url:url,title:title});
+				if(url.substring(0,3)==='/r/'){
+					var thisUrl = "https://www.reddit.com"+url;
+					var htmlObject = '<a href="'+thisUrl+'" target="_blank"><p class="no-margins">'+title+'</p></a><div class="no-margins">Upvotes: '+data.score+' Comments: '+data.commentsCount+'</div><div class="no-margins checkFavorite" dataurl="'+thisUrl+'" datatitle="'+title+'"><div class="loader"></div></div>';
+					$('#scrapeResultsAppend').append(htmlObject);
+				}
+				else{
+					var thisUrl = url;
+					var htmlObject = '<a href="'+thisUrl+'" target="_blank"><p class="no-margins">'+title+'</p></a><div class="no-margins">Upvotes: '+data.score+' Comments: '+data.commentsCount+'</div><div class="no-margins checkFavorite" dataurl="'+thisUrl+'" datatitle="'+title+'"><div class="loader"></div></div>';
+					$('#scrapeResultsAppend').append(htmlObject);
+				}
+			})
+			console.log('check favorites');
+			checkFavorites(potentialFavorites);
+		})
+	}
+
+	function checkFavorites(potentialFavorites){
+		// $('.checkFavorite').each(function(){
+		// 	var thing = {
+		// 		url: $(this).attr('dataurl'),
+		// 		title: $(this).attr('datatitle'),
+		// 		favorited: false
+		// 	}
+		// 	potentialFavorites.push(thing);
+		// })
+		
+		// console.log(potentialFavorites);
+		$.ajax({
+			url:"/api/getuser",
+			type:"GET"
+		}).done(function(results){
+			console.log('results.favorites');
+			console.log(results.favorites);
+			console.log('potentialFavorites');
+			console.log(potentialFavorites);
+			potentialFavorites.info.forEach((data)=>{
+				if(data.url.substring(0,3)==='/r/'){
+					var newUrl = "https://www.reddit.com"+data.url;
+					data.url = newUrl;
+				}
+			})
+			potentialFavorites.info.forEach((favsData)=>{
+				var counter = 0;
+				results.favorites.forEach((resultsData)=>{
+					if(resultsData.url == favsData.url && resultsData.title == favsData.title){
+						counter++;
+					}
+				})
+				if (counter>0){
+					$('[dataurl="'+favsData.url+'"],[datatitle="'+favsData.title+'"]').empty();
+					$('[dataurl="'+favsData.url+'"],[datatitle="'+favsData.title+'"]').append('<i class="fa fa-heart unfavoriteRequest" style="font-size:24px;" dataurl="'+favsData.url+'" datatitle="'+favsData.title+'"></i><i class="fa fa-comment-o commentRequest" style="font-size:24px;" dataurl="'+favsData.url+'" datatitle="'+favsData.title+'"></i>');
+				}
+				else {
+					$('[dataurl="'+favsData.url+'"],[datatitle="'+favsData.title+'"]').empty();
+					$('[dataurl="'+favsData.url+'"],[datatitle="'+favsData.title+'"]').append('<i class="fa fa-heart-o favoriteRequest" style="font-size:24px;" dataurl="'+favsData.url+'" datatitle="'+favsData.title+'"></i><i class="fa fa-comment-o commentRequest" style="font-size:24px;" dataurl="'+favsData.url+'" datatitle="'+favsData.title+'"></i>');
+				}
+			})
+		})
+	}
+
+	$(document).on("click", ".commentRequest", function(){
+		$('#commentModal').modal('show');
+	})
+
+	$(document).on("click", ".favoriteRequest", function(){
+		var thisIcon = $(this);
+		var url = $(this).attr('dataurl').replace(/"/g, '&quot;');
+		var title = $(this).attr('datatitle').replace(/"/g, '&quot;');
+		var data = {
+			url:url,
+			title:title
+		}
+		$.ajax({
+			url:"/api/favorite/new",
+			data:data,
+			type:"POST"
+		}).done(function(data, textStatus, xhr){
+			// console.log(data);
+			thisIcon.empty();
+			thisIcon.removeClass('fa-heart-o favoriteRequest').addClass('fa-heart unfavoriteRequest');
+		})
+	});
+	
+	$(document).on("click", ".unfavoriteRequest", function(){
+		var thisIcon = $(this);
+		var url = $(this).attr('dataurl').replace(/"/g, '&quot;');
+		var title = $(this).attr('datatitle').replace(/"/g, '&quot;');
+		var data = {
+			url:url,
+			title:title
+		}
+		$.ajax({
+			url:"/api/favorite/delete",
+			data:data,
+			type:"POST"
+		}).done(function(data, textStatus, xhr){
+			// console.log(data);
+			thisIcon.removeClass('fa-heart unfavoriteRequest').addClass('fa-heart-o favoriteRequest');
+		})
+	});
+
+// With Loader
+	// $(document).on("click", ".favoriteRequest", function(){
+	// 	var thisIcon = $(this);
+	// 	var url = $(this).attr('dataurl').replace(/"/g, '&quot;');
+	// 	var title = $(this).attr('datatitle').replace(/"/g, '&quot;');
+	// 	var data = {
+	// 		url:url,
+	// 		title:title
+	// 	}
+	// 	thisIcon.removeClass('fa-heart-o');
+	// 	thisIcon.append('<div class="loader"></div>')
+	// 	$.ajax({
+	// 		url:"/api/favorite/new",
+	// 		data:data,
+	// 		type:"POST"
+	// 	}).done(function(data, textStatus, xhr){
+	// 		// console.log(data);
+	// 		thisIcon.empty();
+	// 		thisIcon.removeClass('favoriteRequest').addClass('fa-heart unfavoriteRequest');
+	// 	})
+	// });
+
+</script>

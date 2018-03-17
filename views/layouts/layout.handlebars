@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Reddit Scraper</title>
+	<link rel="stylesheet" href="/css/bootstrap.css" />
+	<link rel="stylesheet" href="/css/style.css" />
+	<script src="/js/jquery-3.3.1.min.js"></script>
+	<script src="/js/bootstrap.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+	<div class="container">
+		<div class="header clearfix">
+			<nav>
+				<ul class="nav nav-pills pull-right">
+					{{#if user}}
+					<li class="smol-side-margins"><a href="/scrape">Scrape</a></li>
+					<li class="smol-side-margins"><a href="/">Dashboard</a></li>
+					<li class="smol-side-margins"><a href="/users/logout">Logout</a>
+					</li>
+					{{else}}
+					<li class="smol-side-margins"><a href="/users/login">Login</a></li>
+					<li class="smol-side-margins"><a href="/users/register">Register</a></li>
+					{{/if}}
+				</ul>
+			</nav>
+			<h3 class="text-muted">Reddit Scraper</h3>
+		</div>
+
+		<div class="row">
+			<div class="col-lg-12">
+				{{#if success_msg}}
+					<div class="alert alert-success">{{success_msg}}</div>
+				{{/if}}
+				{{#if error_msg}}
+					<div class="alert alert-danger">{{error_msg}}</div>
+				{{/if}}
+				{{#if error}}
+					<div class="alert alert-danger">{{error}}</div>
+				{{/if}}
+				{{{body}}}
+			</div>
+		</div>
+
+		<footer class="footer">
+			<p>&copy; 2018 Login App</p>
+		</footer>
+
+	</div> <!-- /container -->
+</body>
+</html>

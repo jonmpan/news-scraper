@@ -1,33 +1,136 @@
-<h1 class="page-header">Dashboard</h1>
-
 {{#each userInfo}}
-	{{!-- <p>Id: {{_id}}<p> --}}
-	<h2>Welcome {{name}}!</h2>
-	{{!-- <p>email: {{email}}<p> --}}
-	<h3>Your Favorites:</h3>
-	{{#if favorites}}
-		<ul id="allFavorites">
-			{{#each favorites}}
-				<li class="sortThis" dataindex="{{@index}}" datatitle="{{title}}">
-					<a href="{{url}}" target="_blank"><p>{{title}}</p></a>
-						{{#if comments}}
-							<p>Comments:</p>
-							{{#each comments}}
-								<p>{{comment}}</p>
-							{{/each}}
-						{{/if}}
-				</li>
-			{{/each}}
-		</ul>
-	{{else}}
-		<p>No favorites</p>
-	{{/if}}
-	<p>Following Subreddits:</p>
-	{{#if subreddits}}
+{{!-- 	{{#if subreddits}}
+	<h6>Following Subreddits:</h6>
 		{{#each subreddits}}
 			<p>{{this}}</p>
 		{{/each}}
 	{{else}}
 		<p>No subreddits</p>
+	{{/if}} --}}
+	{{!-- <p>Id: {{_id}}<p> --}}
+	<h2>Welcome {{name}}! Here are your favorites!</h2>
+	{{!-- <p>email: {{email}}<p> --}}
+	{{#if favorites}}
+		<div id="allFavorites">
+			{{#each favorites}}
+				<div class="sortThis" dataindex="{{@index}}" datatitle="{{title}}" datafavoriteid="{{_id}}">
+					<a href="{{url}}" target="_blank"><h5>{{title}}</h5></a>
+						
+							<h6>Comments <i class="fa fa-plus-circle addComment" style="font-size:1rem;"></i></h6>
+							<ul>
+						{{#if comments}}
+							{{#each comments}}
+								<li><p>{{comment}} <i class="fa fa-edit editComment" style="font-size:1rem;"  datacomment="{{comment}}" dataid="{{_id}}"></i></p></li>
+							{{/each}}
+						{{else}}
+							<p>No Comments</p>
+						{{/if}}
+						</ul>
+				</div>
+			{{/each}}
+		</div>
+	{{else}}
+		<p>No Favorites. Click on <a href="/scrape">scrape</a> to add some favorites</p>
 	{{/if}}
 {{/each}}
+
+<div class="modal fade" id="commentModal" tabindex="-1" role="dialog" aria-labelledby="commentModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="commentModalTitle">Comment Manager</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body" id="commentModalContent">
+				<input id="commentEditInput" type="" name="" value="">
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary" id="commentDeleteRequest">Delete Comment</button>
+				<button type="button" class="btn btn-primary" id="commentUpdateRequest">Update Comment</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="addCommentModal" tabindex="-1" role="dialog" aria-labelledby="addCommentModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="addCommentModalTitle">Comment Manager</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body" id="addCommentModalContent">
+				<input id="addCommentInput" type="" name="" value="">
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary" id="addCommentRequest">Add Comment</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	$(document).on("click",".editComment",function(){
+		$('#commentDeleteRequest').attr("dataid",$(this).attr("dataid"));
+		$('#commentDeleteRequest').attr("datafavoriteid",$(this).parent().parent().parent().parent().attr("datafavoriteid"));
+		$('#commentUpdateRequest').attr("dataid",$(this).attr("dataid"));
+		$('#commentUpdateRequest').attr("datafavoriteid",$(this).parent().parent().parent().parent().attr("datafavoriteid"));
+		$('#commentEditInput').attr("value",$(this).attr("datacomment"));
+		$('#commentModal').modal('show');
+	})
+
+	$(document).on("click","#commentDeleteRequest",function(){
+		var data = {
+			_id:$(this).attr("dataid"),
+			favoriteId:$(this).attr("datafavoriteid")
+		}
+		$.ajax({
+			type:"POST",
+			data:data,
+			url:"/api/deletecomment"
+		}).then(function(results){
+			location.reload();
+		})
+	})
+
+	$(document).on("click","#commentUpdateRequest",function(){
+		var data = {
+			_id:$(this).attr("dataid"),
+			comment:$("#commentEditInput").val().trim(),
+			favoriteId:$(this).attr("datafavoriteid")
+		}
+		$.ajax({
+			type:"POST",
+			data:data,
+			url:"/api/updatecomment"
+		}).then(function(results){
+			location.reload();
+		})
+	})
+
+	$(document).on("click",".addComment",function(){
+		$("#addCommentRequest").attr("favoriteId",$(this).parent().parent().attr("datafavoriteid"));
+		$("#addCommentModal").modal('show');
+	});
+
+	$(document).on("click","#addCommentRequest",function(){
+		var data = {
+			comment:$("#addCommentInput").val().trim(),
+			favoriteId:$(this).attr("favoriteId")
+		}
+		console.log(data);
+		$.ajax({
+			type:"POST",
+			url:"/api/addcomment",
+			data:data
+		}).then(function(results){
+			location.reload();
+		})
+	})
+</script>

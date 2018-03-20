@@ -30,6 +30,7 @@ module.exports = function(app){
 		var username = req.body.username;
 		var password = req.body.password;
 		var password2 = req.body.password2;
+		var subreddits = ["/","/r/mildlyinteresting"];
 
 		var hbUserData = [{
 			name,
@@ -49,28 +50,59 @@ module.exports = function(app){
 		var errors = req.validationErrors();
 
 		if(errors){
+			console.log(errors);
 			console.log('YES ERRORS');
 			console.log(hbUserData);
-			res.render('register',
-				{
-					errors,
-					hbUserData
-				});
-		} else {
-			var newUser = new User({
-				name,
-				email,
-				username,
-				password
+			res.render('register', {
+				errors,
+				hbUserData
 			});
-			User.createUser(newUser,function(err, user){
-				if(err) throw err;
-				console.log(user);
+		} else {
+			User.getUserByUsername(username, function(err,userInfo){
+				if(userInfo){
+					var errors = [{param: 'username',
+						msg: 'Username already exists',
+						value: username
+					}]
+					console.log(userInfo);
+					console.log('Username already exists');
+					res.render('register', {	
+						errors,
+						hbUserData
+					});
+				}
+				if(!userInfo){
+					var query = {email:email};
+					User.findOne(query,function(err,emailInfo){
+						if(emailInfo){
+							var errors = [{param: 'email',
+								msg: 'Email already registered',
+								value: email
+							}]
+							console.log('Email already registered');
+							res.render('register', {	
+								errors,
+								hbUserData
+							});
+						}
+						if(!emailInfo){
+							var newUser = new User({
+								name,
+								email,
+								username,
+								subreddits,
+								password
+							});
+							User.createUser(newUser,function(err, user){
+								if(err) throw err;
+								console.log(user);
+							})
+							req.flash('success_msg','You are registered and can now login');
+							res.redirect('/users/login');
+						}
+					})
+				}
 			})
-
-			req.flash('success_msg','You are registered and can now login');
-
-			res.redirect('/users/login');
 		}
 	})
 

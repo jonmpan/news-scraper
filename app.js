@@ -10,9 +10,16 @@ var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var mongo = require('mongodb');
 var mongoose = require('mongoose');
+
 // mongoose.connect('mongodb://localhost/loginapp');
-mongoose.connect('mongodb://localhost/poop');
-// var db = mongoose.connection;
+if(process.env.MONGODB_URI){
+	mongoose.connect('mongodb://localhost/poop');
+}
+else{
+	mongoose.connect('mongodb://localhost/loginapp');
+}
+
+var db = mongoose.connection;
 
 // var htmlRoutes = require('./routes/htmlRoutes');
 // var userRoutes = require('./routes/userRoutes');

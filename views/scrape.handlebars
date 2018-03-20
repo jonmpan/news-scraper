@@ -1,27 +1,9 @@
 <h2 class="page-header">Scraper</h2>
 
 {{#each userInfo}}
-{{!-- 	<p>Id: {{_id}}<p>
-	<p>Name: {{name}}<p>
-	<p>email: {{email}}<p>
-	<p>username: {{username}}<p>
-	<p>password: {{password}}</p>
-	<p>Favorites:</p>
-	{{#if favorites}}
-		{{#each favorites}}
-			<a href="{{url}}" target="_blank"><p>{{url}}</p></a>
-			{{#if comments}}
-				{{#each comments}}
-					<p>{{this}}</p>
-				{{/each}}
-			{{/if}}
-		{{/each}}
-	{{else}}
-		<p>No favorites</p>
-	{{/if}}
-	<p>Following Subreddits:</p> --}}
+	<p>Add a subreddit by clicking on this <i class="fa fa-plus-circle addSubreddit" style="font-size:1rem;"></i></p>
 	{{#if subreddits}}
-		<p>Scrape the following subreddit(s) by clicking on one</p>
+		<p>Scrape the following subreddit(s) by clicking on one</p>	
 		{{#each subreddits}}
 			<button class="btn fetchSubreddits scrapeSubreddit" dataSubreddit="{{this}}">{{this}}</button>
 		{{/each}}
@@ -31,22 +13,22 @@
 	{{/if}}
 {{/each}}
 
-<div class="modal fade" id="commentModal" tabindex="-1" role="dialog" aria-labelledby="commentModalLabel" aria-hidden="true">
+<div class="modal fade" id="addSubredditModal" tabindex="-1" role="dialog" aria-labelledby="addSubredditModalLabel" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title" id="commentModalTitle">Comment Manager</h5>
+				<h5 class="modal-title" id="addSubredditModalTitle">Add Subreddit</h5>
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
 				</button>
 			</div>
-			<div class="modal-body" id="commentModalContent">
-				<div class="loader"></div>
-				<input class="aComment" type="" name="" value="Poop">
+			<div class="modal-body" id="addSubredditModalContent">
+				<div id="addSubredditAnimate">Format: /r/politics</div>
+				<input id="addSubredditInput" type="" name="" value="">
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-				<button type="button" class="btn btn-primary">Save changes</button>
+				<button type="button" class="btn btn-primary" id="addSubredditRequest">Add Subreddit</button>
 			</div>
 		</div>
 	</div>
@@ -114,6 +96,8 @@
 		})
 	}
 
+// var commenticon = "<i class="fa fa-comment-o commentRequest" style="font-size:24px;" dataurl="'+favsData.url+'" datatitle="'+favsData.title+'"></i>"
+
 	function checkFavorites(potentialFavorites){
 		// $('.checkFavorite').each(function(){
 		// 	var thing = {
@@ -148,18 +132,18 @@
 				})
 				if (counter>0){
 					$('[dataurl="'+favsData.url+'"],[datatitle="'+favsData.title+'"]').empty();
-					$('[dataurl="'+favsData.url+'"],[datatitle="'+favsData.title+'"]').append('<i class="fa fa-heart unfavoriteRequest" style="font-size:24px;" dataurl="'+favsData.url+'" datatitle="'+favsData.title+'"></i><i class="fa fa-comment-o commentRequest" style="font-size:24px;" dataurl="'+favsData.url+'" datatitle="'+favsData.title+'"></i>');
+					$('[dataurl="'+favsData.url+'"],[datatitle="'+favsData.title+'"]').append('<i class="fa fa-heart unfavoriteRequest" style="font-size:24px;" dataurl="'+favsData.url+'" datatitle="'+favsData.title+'"></i>');
 				}
 				else {
 					$('[dataurl="'+favsData.url+'"],[datatitle="'+favsData.title+'"]').empty();
-					$('[dataurl="'+favsData.url+'"],[datatitle="'+favsData.title+'"]').append('<i class="fa fa-heart-o favoriteRequest" style="font-size:24px;" dataurl="'+favsData.url+'" datatitle="'+favsData.title+'"></i><i class="fa fa-comment-o commentRequest" style="font-size:24px;" dataurl="'+favsData.url+'" datatitle="'+favsData.title+'"></i>');
+					$('[dataurl="'+favsData.url+'"],[datatitle="'+favsData.title+'"]').append('<i class="fa fa-heart-o favoriteRequest" style="font-size:24px;" dataurl="'+favsData.url+'" datatitle="'+favsData.title+'"></i>');
 				}
 			})
 		})
 	}
 
-	$(document).on("click", ".commentRequest", function(){
-		$('#commentModal').modal('show');
+	$(document).on("click", ".addSubreddit", function(){
+		$('#addSubredditModal').modal('show');
 	})
 
 	$(document).on("click", ".favoriteRequest", function(){
@@ -199,6 +183,23 @@
 		})
 	});
 
+	$(document).on("click", "#addSubredditRequest", function(){
+		var subreddit = $("#addSubredditInput").val().trim();
+		var data = {subreddit:subreddit};
+		console.log(subreddit);
+		if(subreddit.substring(0,3)==='/r/'){
+			$.ajax({
+				type:"POST",
+				data:data,
+				url:"/api/addsubreddit"
+			}).then(function(){
+				location.reload();
+			})
+		}
+		else{
+			$("#addSubredditAnimate").addClass("animated infinite flash");
+		}
+	})
 // With Loader
 	// $(document).on("click", ".favoriteRequest", function(){
 	// 	var thisIcon = $(this);

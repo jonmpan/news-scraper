@@ -4,9 +4,6 @@ var currentUser = require("../models/User.js");
 var mongoose = require("mongoose");
 mongoose.Promise = Promise;
 
-// .replace(/"/g, '\\"')
-
-
 function scrapeSubreddit(subreddit,res){
 	axios.get("http://www.reddit.com"+subreddit).then((response)=>{
 		var results = {
@@ -138,14 +135,13 @@ module.exports = function(app){
 		})
 	})
 
-	app.get('/api/testpushcomment', isLoggedIn, function(req,res){
-		var testObj = {
-			comment:"Mueller is da man"
-		};
-		var favoritesId = "5aab01284bf807a7cd49e91d";
+	app.post('/api/addsubreddit', isLoggedIn, function(req,res){
+		var subreddit = req.body.subreddit;
+		// var subreddit = "poop";
+		// var testUserId = "5ab1748431e21e6c7f283391";
 		currentUser.findOneAndUpdate(
-			{"favorites._id":favoritesId},
-			{$push:{"favorites.$.comments": testObj } }
+			{"_id":req.user._id},
+			{$push:{"subreddits":subreddit}}
 		).then(function(){
 			currentUser.findById(req.user._id).then((result)=>{
 				console.log(result);
@@ -153,11 +149,27 @@ module.exports = function(app){
 			});
 		});
 	})
-	// {"favorites.comments._id":testId}
-	app.get('/api/updatecomment', isLoggedIn, function(req,res){
-		var testComment = "Shittier Update!";
-		var favoriteId = "5aab01284bf807a7cd49e91d";
-		var commentId = "5aab181ada8d6bad49e68d72";
+
+	app.post('/api/addcomment', isLoggedIn, function(req,res){
+		var data = {
+			comment:req.body.comment
+		};
+		var favoriteId = req.body.favoriteId;
+		currentUser.findOneAndUpdate(
+			{"favorites._id":favoriteId},
+			{$push:{"favorites.$.comments": data } }
+		).then(function(){
+			currentUser.findById(req.user._id).then((result)=>{
+				console.log(result);
+				res.json(result);
+			});
+		});
+	})
+
+	app.post('/api/updatecomment', isLoggedIn, function(req,res){
+		var commentUpdate = req.body.comment;
+		var favoriteId = req.body.favoriteId;
+		var commentId = req.body._id;
 
 		currentUser.findById(req.user._id, function(err,userInfo){
 			console.log(userInfo);
@@ -167,14 +179,14 @@ module.exports = function(app){
 						if(eachComment._id == commentId){
 							console.log("found comment");
 							console.log(eachComment.comment);
-							eachComment.comment = testComment;
+							eachComment.comment = commentUpdate;
 							console.log(eachComment.comment);
 						}
 					})
 				}
 			})
 			userInfo.save(function(err){
-				console.log('hopefully saved');
+				console.log('saved comment update');
 				currentUser.findById(req.user._id).then((result)=>{
 					console.log(result);
 					res.json(result);
@@ -183,10 +195,9 @@ module.exports = function(app){
 		})
 	})
 
-	app.get('/api/deletecomment', isLoggedIn, function(req,res){
-		var testComment = "Shittier Update!";
-		var commentId = "5aa9f74e2b46b45e8d324259";
-		var favoriteId = "5aaa10a02d03016ab53b9b2e";
+	app.post('/api/deletecomment', isLoggedIn, function(req,res){
+		var commentId = req.body._id;
+		var favoriteId = req.body.favoriteId;
 		var tempCommentArray = [];
 
 		currentUser.findById(req.user._id, function(err,userInfo){

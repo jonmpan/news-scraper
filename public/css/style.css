@@ -108,3 +108,11 @@ footer{
 .no-margins {
   margin:0px !important;
 }
+
+input {
+  width: 100%;
+}
+
+#addSubredditAnimate{
+  width: auto;
+}

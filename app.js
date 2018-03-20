@@ -13,10 +13,10 @@ var mongoose = require('mongoose');
 
 // mongoose.connect('mongodb://localhost/loginapp');
 if(process.env.MONGODB_URI){
-	mongoose.connect('mongodb://localhost/poop');
+	mongoose.connect(process.env.MONGODB_URI);
 }
 else{
-	mongoose.connect('mongodb://localhost/loginapp');
+	mongoose.connect('mongodb://localhost/poop');
 }
 
 var db = mongoose.connection;

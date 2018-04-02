@@ -1,4 +1,4 @@
-# Reddit Scraper
+# Reddit Scraper v0.5
 
 Here is a reddit scraper that allows people to register, login, and save their favorite reddit threads and to make personal comments/notes on each thread. This adds a new level of functionality that reddit doesn't have in their saved threads by allowing you to make a personal note on a thread. This concept can easily be applied to incorporate all news/sites that can be scraped and allow a user to save links and make notes on those links. This can be potentially useful to researchers/journalists who favorite/save a lot of things but also want notes to remind them as to why they saved it.
 
